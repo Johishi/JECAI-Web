@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JECAI | Inteligencia Contable, Renta & Automatización IA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        canvas: '#F8FAFD',
+                        primary: '#1E3A8A',       // Azul marino insignia
+                        'primary-dark': '#0B132B',  // Azul noche corporativo
+                        accent: '#00D1FF',        // Cian neón tecnológico
+                        'accent-soft': '#E0F7FE',  // Cian suave
+                        'sky-frost': '#BAE6FD',    // Borde azul clarito
+                        ink: '#0F172A',           // Texto principal
+                        'ink-muted': '#475569',   // Texto secundario
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                        mono: ['DM Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F8FAFD;
+            color: #0F172A;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            position: relative;
+        }
+        h1, h2, h3, .font-display { font-family: 'Space Grotesk', sans-serif; }
+        .font-mono { font-family: 'DM Mono', monospace; }
+
+        /* EFECTO SPOTLIGHT DEL CURSOR */
+        #cursorGlow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 700px;
+            height: 700px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 209, 255, 0.12) 0%, rgba(56, 189, 248, 0.05) 45%, transparent 70%);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            transition: transform 0.08s ease-out, opacity 0.3s ease;
+            mix-blend-mode: multiply;
+        }
+
+        /* FONDO TECNOLÓGICO SUTIL BLUEPRINT GRID */
+        .ambient-grid {
+            background-image: 
+                linear-gradient(to right, rgba(186, 230, 253, 0.25) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(186, 230, 253, 0.25) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* TARJETAS CON DIFUMINADO AZUL CLARITO */
+        .card-frost {
+            background: linear-gradient(135deg, #F0F9FF 0%, #FFFFFF 55%, #F8FAFC 100%);
+            border: 1px solid #BAE6FD;
+            box-shadow: 0 10px 30px -5px rgba(0, 209, 255, 0.07);
+            border-radius: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .card-frost:hover {
+            border-color: #38BDF8;
+            box-shadow: 0 18px 40px -8px rgba(0, 209, 255, 0.16);
+            transform: translateY(-3px);
+        }
+
+        .animate-marquee {
+            display: inline-flex;
+            white-space: nowrap;
+            animation: marquee 35s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
+        }
+        [x-cloak] { display: none !important; }
+
+        /* Animación de barras de audio */
+        @keyframes soundWave {
+            0%, 100% { height: 4px; }
+            50% { height: 16px; }
+        }
+        .animate-wave-1 { animation: soundWave 1.2s ease-in-out infinite; }
+        .animate-wave-2 { animation: soundWave 1.2s ease-in-out infinite 0.2s; }
+        .animate-wave-3 { animation: soundWave 1.2s ease-in-out infinite 0.4s; }
+    </style>
+</head>
+<body class="antialiased selection:bg-accent selection:text-ink ambient-grid min-h-screen" 
+      x-data="jecaiApp()">
+
+    <!-- EFECTO DIMENSIÓN AZUL DEL CURSOR -->
+    <div id="cursorGlow"></div>
+
+    <!-- 1. TICKER SUPERIOR DINÁMICO -->
+    <div class="bg-primary-dark text-slate-300 text-xs py-2 px-4 sticky top-0 z-50 overflow-hidden border-b border-white/10 shadow-sm">
+        <div class="max-w-7xl mx-auto flex items-center">
+            <span class="bg-red-500/20 text-red-300 border border-red-500/30 px-2.5 py-0.5 rounded mr-3 uppercase tracking-wider text-[11px] font-mono font-bold flex items-center gap-1.5 shrink-0">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse"></span> Alerta DIAN
+            </span>
+            <div class="overflow-hidden w-full relative">
+                <div class="animate-marquee gap-8 text-slate-300">
+                    <span>⚡ Temporada Renta Personas Naturales (Año Gravable <span x-text="ANIO_GRAVABLE"></span> en <span x-text="ANIO_PRESENTACION"></span>): Evita la sanción mínima extemporánea de <span x-text="formatCurrency(SANCION_MINIMA)"></span> COP (10 UVT <span x-text="ANIO_PRESENTACION"></span>).</span>
+                    <span>• Topes de Renta calculados con UVT <span x-text="ANIO_GRAVABLE"></span> (<span x-text="formatCurrency(UVT_GRAVABLE)"></span>).</span>
+                    <span>• Retenciones y UVT operativa <span x-text="ANIO_PRESENTACION"></span>: <span x-text="formatCurrency(UVT_OPERATIVA)"></span>.</span>
+                    <span>• Automatización Pymes: Aumenta tu productividad hasta en un 60% integrando Siigo con Inteligencia Artificial.</span>
+                    <span>⚡ Temporada Renta Personas Naturales (Año Gravable <span x-text="ANIO_GRAVABLE"></span> en <span x-text="ANIO_PRESENTACION"></span>): Evita la sanción mínima extemporánea de <span x-text="formatCurrency(SANCION_MINIMA)"></span> COP.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. NAVBAR BLANCO LUMINOSO -->
+    <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-[33px] z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-24">
+                
+                <!-- Logo Limpio y Amplio -->
+                <div class="flex items-center gap-4 cursor-pointer" @click="currentTab = 'inicio'">
+                    <img class="h-16 w-auto rounded-xl shadow-md border border-slate-200 hover:scale-105 transition-transform" src="Logotipo JECAI.jpg" alt="Logo JECAI">
+                    <div>
+                        <span class="font-display font-bold text-2xl tracking-wider text-ink">JECAI</span>
+                        <p class="text-[11px] text-sky-600 font-semibold tracking-widest uppercase">Optimiza tus procesos</p>
+                    </div>
+                </div>
+
+                <!-- Pestañas Desktop -->
+                <nav class="hidden lg:flex items-center gap-1.5 bg-slate-100/90 p-1.5 rounded-full border border-slate-200">
+                    <button @click="currentTab = 'inicio'" :class="currentTab === 'inicio' ? 'bg-white text-primary font-bold shadow-sm border border-slate-200' : 'text-ink-muted hover:text-ink'" class="px-5 py-2 rounded-full text-xs font-semibold transition-all">
+                        Inicio & Actualidad
+                    </button>
+                    <button @click="currentTab = 'naturales'" :class="currentTab === 'naturales' ? 'bg-white text-primary font-bold shadow-sm border border-slate-200' : 'text-ink-muted hover:text-ink'" class="px-5 py-2 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5">
+                        <span>Persona Natural</span>
+                        <span class="text-[9px] bg-red-100 text-red-700 font-bold px-1.5 py-0.2 rounded-full uppercase">Renta</span>
+                    </button>
+                    <button @click="currentTab = 'pymes'" :class="currentTab === 'pymes' ? 'bg-white text-primary font-bold shadow-sm border border-slate-200' : 'text-ink-muted hover:text-ink'" class="px-5 py-2 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5">
+                        <span>Pymes & Automatización</span>
+                        <span class="text-[9px] bg-cyan-100 text-cyan-800 font-mono font-bold px-1.5 py-0.2 rounded-full uppercase">IA</span>
+                    </button>
+                    <button @click="currentTab = 'calculadoras'" :class="currentTab === 'calculadoras' ? 'bg-white text-primary font-bold shadow-sm border border-slate-200' : 'text-ink-muted hover:text-ink'" class="px-5 py-2 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5">
+                        <span>Herramientas / SaaS</span>
+                        <span class="text-[9px] bg-blue-100 text-blue-800 font-mono font-bold px-1.5 rounded" x-text="ANIO_PRESENTACION"></span>
+                    </button>
+                    <button @click="currentTab = 'contacto'" :class="currentTab === 'contacto' ? 'bg-primary text-white font-bold shadow-sm' : 'text-ink-muted hover:text-ink'" class="px-5 py-2 rounded-full text-xs font-semibold transition-all">
+                        Contacto
+                    </button>
+                </nav>
+
+                <div class="flex items-center gap-3">
+                    <button @click="currentTab = 'contacto'" class="hidden sm:inline-flex items-center gap-2 bg-primary hover:bg-blue-900 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-all shadow-md">
+                        <span>Agendar Asesoría</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Selector Móvil Scrollable -->
+            <div class="lg:hidden flex overflow-x-auto gap-2 py-3 border-t border-slate-200 no-scrollbar text-xs">
+                <button @click="currentTab = 'inicio'" :class="currentTab === 'inicio' ? 'bg-primary text-white font-bold' : 'bg-slate-100 text-ink-muted'" class="px-3.5 py-1.5 rounded-lg shrink-0">Inicio</button>
+                <button @click="currentTab = 'naturales'" :class="currentTab === 'naturales' ? 'bg-primary text-white font-bold' : 'bg-slate-100 text-ink-muted'" class="px-3.5 py-1.5 rounded-lg shrink-0">Persona Natural (Renta)</button>
+                <button @click="currentTab = 'pymes'" :class="currentTab === 'pymes' ? 'bg-primary text-white font-bold' : 'bg-slate-100 text-ink-muted'" class="px-3.5 py-1.5 rounded-lg shrink-0">Pymes & IA</button>
+                <button @click="currentTab = 'calculadoras'" :class="currentTab === 'calculadoras' ? 'bg-primary text-white font-bold' : 'bg-slate-100 text-ink-muted'" class="px-3.5 py-1.5 rounded-lg shrink-0">Calculadoras</button>
+                <button @click="currentTab = 'contacto'" :class="currentTab === 'contacto' ? 'bg-primary text-white font-bold' : 'bg-slate-100 text-ink-muted'" class="px-3.5 py-1.5 rounded-lg shrink-0">Contacto</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="relative z-10">
+        <!-- ========================================================================= -->
+        <!-- PESTAÑA 1: INICIO & ACTUALIDAD -->
+        <!-- ========================================================================= -->
+        <div x-show="currentTab === 'inicio'" x-transition:enter="transition duration-300 ease-out" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+            
+            <!-- HERO -->
+            <section class="relative min-h-[85vh] flex items-center justify-center py-20 px-4 overflow-hidden border-b border-sky-100">
+                <div class="absolute inset-0 bg-cover bg-center z-0 filter brightness-[0.98]" style="background-image: url('hero_background.jpg');"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-canvas via-white/85 to-white/70 z-0"></div>
+
+                <div class="max-w-5xl mx-auto text-center relative z-10">
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/90 border border-sky-300 text-primary text-xs font-semibold uppercase tracking-wider mb-6 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-accent animate-ping"></span>
+                        Contabilidad Estratégica & Automatización con IA
+                    </div>
+                    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-bold font-display text-ink tracking-tight mb-6 leading-tight">
+                        Transformamos la complejidad contable en <span class="text-primary">decisiones inteligentes</span>
+                    </h1>
+                    <p class="text-lg sm:text-xl text-ink-muted mb-10 max-w-3xl mx-auto font-normal leading-relaxed">
+                        En <strong class="text-ink font-semibold">JECAI</strong> unimos rigor tributario con el poder de la Inteligencia Artificial y Siigo para que cumplas ante la DIAN, protejas tu dinero y escales tus procesos.
+                    </p>
+
+                    <!-- Tarjetas de Selección -->
+                    <div class="grid sm:grid-cols-2 gap-6 max-w-xl mx-auto mb-12">
+                        <button @click="currentTab = 'naturales'" class="card-frost p-6 text-left group">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs uppercase font-bold tracking-wider text-primary font-mono">Para Ciudadanos</span>
+                                <span class="text-[10px] bg-red-100 text-red-700 font-bold px-2 py-0.5 rounded">Temporada Renta</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-ink group-hover:text-primary transition-colors">Soy Persona Natural</h3>
+                            <p class="text-xs text-ink-muted mt-1 leading-relaxed">Declaración de renta sin errores, estudio de topes y tranquilidad frente a la DIAN.</p>
+                        </button>
+
+                        <button @click="currentTab = 'pymes'" class="card-frost p-6 text-left group">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs uppercase font-bold tracking-wider text-primary font-mono">Para Empresas</span>
+                                <span class="text-[10px] bg-cyan-100 text-cyan-800 font-mono font-bold px-2 py-0.5 rounded">IA + SIIGO</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-ink group-hover:text-primary transition-colors">Tengo una Pyme / Negocio</h3>
+                            <p class="text-xs text-ink-muted mt-1 leading-relaxed">Automatización de tareas repetitivas con IA, integración Siigo y reducción de costos.</p>
+                        </button>
+                    </div>
+
+                    <!-- Métricas de Confianza -->
+                    <div class="card-frost p-6 max-w-4xl mx-auto">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                            <div>
+                                <p class="text-3xl font-bold font-mono text-primary">+8 Años</p>
+                                <p class="text-xs text-ink-muted font-medium mt-1">Liderando Proyectos Contables</p>
+                            </div>
+                            <div>
+                                <p class="text-3xl font-bold font-mono text-primary">100%</p>
+                                <p class="text-xs text-ink-muted font-medium mt-1">Cumplimiento DIAN / NIIF</p>
+                            </div>
+                            <div>
+                                <p class="text-3xl font-bold font-mono text-primary">-60%</p>
+                                <p class="text-xs text-ink-muted font-medium mt-1">Tiempo en Procesos con IA</p>
+                            </div>
+                            <div>
+                                <p class="text-3xl font-bold font-mono text-primary">$0</p>
+                                <p class="text-xs text-ink-muted font-medium mt-1">Sanciones en Nuestros Clientes</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ELEMENTO DIFERENCIADOR: SEMÁFORO TRIBUTARIO CALCULADO CON UVT DEL AÑO GRAVABLE -->
+            <section class="py-16 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="card-frost p-8 sm:p-10 border-2 border-sky-300 relative overflow-hidden">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-sky-100">
+                        <div>
+                            <span class="text-xs font-mono text-primary font-bold uppercase tracking-widest bg-sky-100 px-2.5 py-0.5 rounded">
+                                Diagnóstico Interactivo DIAN <span x-text="ANIO_PRESENTACION"></span>
+                            </span>
+                            <h3 class="text-2xl font-bold text-ink mt-1 font-display">Semáforo Tributario en Vivo</h3>
+                            <p class="text-xs text-ink-muted">
+                                Calculado con los ingresos del año gravable <span class="font-semibold text-primary" x-text="ANIO_GRAVABLE"></span> (UVT: <span class="font-mono font-semibold" x-text="formatCurrency(UVT_GRAVABLE)"></span>):
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-ink-muted block font-mono">Ingreso Promedio Mensual:</span>
+                            <span class="text-2xl font-bold font-mono text-primary" x-text="formatCurrency(ingresoMensual)"></span>
+                        </div>
+                    </div>
+
+                    <!-- Slider Interactivo -->
+                    <input type="range" min="2000000" max="15000000" step="200000" x-model="ingresoMensual" class="w-full h-2 bg-sky-200 rounded-lg appearance-none cursor-pointer accent-primary mb-6">
+
+                    <!-- Diagnóstico Dinámico con lógica tributaria exacta -->
+                    <div class="p-5 rounded-2xl border transition-all" :class="ingresoMensual >= TOPE_INGRESOS_MES ? 'bg-red-50/90 border-red-200 text-red-950' : 'bg-emerald-50/90 border-emerald-200 text-emerald-950'">
+                        <div class="flex items-start gap-3">
+                            <span class="text-2xl" x-text="ingresoMensual >= TOPE_INGRESOS_MES ? '🔴' : '🟢'"></span>
+                            <div>
+                                <h4 class="font-bold text-base" x-text="ingresoMensual >= TOPE_INGRESOS_MES ? `¡Estás OBLIGADO a declarar renta en ${ANIO_PRESENTACION}!` : 'Por ingresos estás por debajo del umbral, ¡pero revisa los otros topes!'"></h4>
+                                <p class="text-xs mt-1 leading-relaxed opacity-90" x-text="ingresoMensual >= TOPE_INGRESOS_MES ? `Tus ingresos anuales estimados superan los 1.400 UVT del año gravable ${ANIO_GRAVABLE} (${formatCurrency(TOPE_INGRESOS_ANIO)} COP). Presentar tu declaración a tiempo te evitará la sanción mínima extemporánea del ${ANIO_PRESENTACION} (${formatCurrency(SANCION_MINIMA)} COP) y permite aplicar deducciones para pagar $0 o tener saldo a favor.` : `Si tus ingresos brutos en ${ANIO_GRAVABLE} fueron menores a ${formatCurrency(TOPE_INGRESOS_ANIO)} COP, aún podrías estar obligado si tus compras con tarjeta de crédito, transferencias bancarias o patrimonio superan los topes de ley.`"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button @click="currentTab = 'naturales'" class="text-xs font-bold text-primary hover:text-blue-900 flex items-center gap-1">
+                            Ver todos los requisitos y topes completos de la DIAN &rarr;
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CONTABILIDAD PARA NO CONTABLES -->
+            <section class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <span class="text-xs font-mono text-primary font-bold uppercase tracking-widest">Educación Financiera Transparente</span>
+                    <h2 class="text-3xl sm:text-4xl font-bold text-ink mt-2 font-display">Contabilidad para no contables</h2>
+                    <p class="text-ink-muted mt-3 text-sm sm:text-base">Sin tecnicismos complicados. Las verdades tributarias que necesitas saber para proteger tu bolsillo.</p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="card-frost p-8">
+                        <div class="w-12 h-12 rounded-xl bg-sky-100 text-primary flex items-center justify-center font-bold text-lg mb-6 font-mono border border-sky-200">01</div>
+                        <h3 class="text-lg font-bold text-ink mb-2">Declarar NO significa necesariamente pagar</h3>
+                        <p class="text-sm text-ink-muted leading-relaxed">
+                            Muchas personas no declaran por miedo al cobro. La realidad: con tus retenciones aplicadas y deducciones por dependientes, medicina prepagada o vivienda, tu impuesto puede ser <strong>$0 o dar saldo a favor</strong>. Lo costoso es la sanción por no presentarla a tiempo.
+                        </p>
+                    </div>
+
+                    <div class="card-frost p-8">
+                        <div class="w-12 h-12 rounded-xl bg-sky-100 text-primary flex items-center justify-center font-bold text-lg mb-6 font-mono border border-sky-200">02</div>
+                        <h3 class="text-lg font-bold text-ink mb-2">Tus movimientos bancarios ya están en la DIAN</h3>
+                        <p class="text-sm text-ink-muted leading-relaxed">
+                            La información exógena bancaria reporta consumos con tarjeta, transferencias y consignaciones. Si sumaste más de 1.400 UVT en el año fiscal, quedas obligado a declarar automáticamente.
+                        </p>
+                    </div>
+
+                    <div class="card-frost p-8">
+                        <div class="w-12 h-12 rounded-xl bg-sky-100 text-primary flex items-center justify-center font-bold text-lg mb-6 font-mono border border-sky-200">03</div>
+                        <h3 class="text-lg font-bold text-ink mb-2">Para Pymes: La IA no reemplaza, acelera</h3>
+                        <p class="text-sm text-ink-muted leading-relaxed">
+                            Integrar Inteligencia Artificial en tu flujo contable (Siigo + automatizaciones) no es ciencia ficción: permite extraer datos de facturas, conciliar bancos en minutos y dejar que el contador se enfoque en planear tu ahorro fiscal.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Banner Insignia -->
+                <div class="mt-16 card-frost p-8 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-6 border-2 border-sky-300">
+                    <div class="max-w-2xl">
+                        <span class="text-xs uppercase font-mono tracking-widest text-primary font-bold">Garantía Profesional</span>
+                        <h3 class="text-xl sm:text-2xl font-bold text-ink mt-1">Tranquilidad absoluta ante cualquier requerimiento</h3>
+                        <p class="text-sm text-ink-muted mt-2">
+                            Cada cálculo y declaración está avalado por Contadores Públicos certificados con tarjeta profesional vigente y amplia experiencia en optimización tributaria.
+                        </p>
+                    </div>
+                    <button @click="currentTab = 'contacto'" class="bg-primary hover:bg-blue-900 text-white font-bold px-6 py-3.5 rounded-xl text-sm shrink-0 transition-all shadow-md">
+                        Hablar con un Contador
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- PESTAÑA 2: PERSONA NATURAL (TOPES CON UVT GRAVABLE EXACTA) -->
+        <!-- ========================================================================= -->
+        <div x-show="currentTab === 'naturales'" x-cloak x-transition:enter="transition duration-300 ease-out" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+            
+            <div class="relative py-20 px-4 border-b border-sky-100 overflow-hidden">
+                <div class="absolute inset-0 bg-cover bg-center z-0 filter brightness-95" style="background-image: url('bg_personal_tax.jpg');"></div>
+                <div class="absolute inset-0 bg-gradient-to-b from-white/90 via-white/80 to-canvas z-0"></div>
+                
+                <div class="max-w-4xl mx-auto text-center relative z-10">
+                    <span class="text-xs font-mono text-primary font-bold uppercase tracking-widest bg-sky-100 px-3 py-1 rounded-full border border-sky-300">
+                        Vigencia Fiscal DIAN <span x-text="ANIO_PRESENTACION"></span>
+                    </span>
+                    <h2 class="text-3xl sm:text-5xl font-bold text-ink font-display mt-4">Declaración de Renta Personas Naturales</h2>
+                    <p class="text-ink-muted mt-4 text-base sm:text-lg max-w-2xl mx-auto">
+                        Declaración del año gravable <strong class="text-ink" x-text="ANIO_GRAVABLE"></strong>. Auditamos tus certificados y extractos bancarios para que aproveches cada deducción legal.
+                    </p>
+                </div>
+            </div>
+
+            <section class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- SIMULADOR RÁPIDO CON TOPES EXACTOS -->
+                <div class="max-w-3xl mx-auto card-frost p-8 sm:p-10 border-2 border-sky-300 mb-16">
+                    <div class="flex items-center gap-3 mb-6 border-b border-sky-100 pb-4">
+                        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg border border-amber-200">💡</div>
+                        <div>
+                            <h3 class="text-lg font-bold text-ink">Topes Oficiales DIAN para Declarar en <span x-text="ANIO_PRESENTACION"></span></h3>
+                            <p class="text-xs text-ink-muted">
+                                Calculados con la UVT del año gravable <strong class="text-primary font-mono" x-text="ANIO_GRAVABLE"></strong> (<span class="font-mono font-semibold" x-text="formatCurrency(UVT_GRAVABLE)"></span> COP)
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 text-sm text-ink-muted">
+                        <p class="font-medium text-ink">Si durante el año <span class="text-primary font-bold" x-text="ANIO_GRAVABLE"></span> cumpliste <span class="text-primary font-bold">AL MENOS UNO</span> de estos 4 criterios, estás obligado a declarar:</p>
+                        
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="bg-white/80 p-4 rounded-xl border border-sky-200">
+                                <span class="text-xs font-mono text-primary font-bold block mb-1">1. Patrimonio Bruto (4.500 UVT)</span>
+                                <strong class="text-ink text-base" x-text="`Superior a ${formatCurrency(TOPE_PATRIMONIO)}`"></strong>
+                                <span class="text-[11px] text-ink-muted block mt-0.5">(Casas, carros, inversiones y saldo en cuentas a 31 dic)</span>
+                            </div>
+                            <div class="bg-white/80 p-4 rounded-xl border border-sky-200">
+                                <span class="text-xs font-mono text-primary font-bold block mb-1">2. Ingresos Brutos (1.400 UVT)</span>
+                                <strong class="text-ink text-base" x-text="`Superior a ${formatCurrency(TOPE_INGRESOS_ANIO)}`"></strong>
+                                <span class="text-[11px] text-ink-muted block mt-0.5" x-text="`(Aprox. ${formatCurrency(TOPE_INGRESOS_MES)} mensuales en promedio)`"></span>
+                            </div>
+                            <div class="bg-white/80 p-4 rounded-xl border border-sky-200">
+                                <span class="text-xs font-mono text-primary font-bold block mb-1">3. Consumos con Tarjeta (1.400 UVT)</span>
+                                <strong class="text-ink text-base" x-text="`Superior a ${formatCurrency(TOPE_INGRESOS_ANIO)}`"></strong>
+                                <span class="text-[11px] text-ink-muted block mt-0.5">En compras físicas, datáfonos o pasarelas online</span>
+                            </div>
+                            <div class="bg-white/80 p-4 rounded-xl border border-sky-200">
+                                <span class="text-xs font-mono text-primary font-bold block mb-1">4. Consignaciones y Depósitos (1.400 UVT)</span>
+                                <strong class="text-ink text-base" x-text="`Superior a ${formatCurrency(TOPE_INGRESOS_ANIO)}`"></strong>
+                                <span class="text-[11px] text-ink-muted block mt-0.5">Suma total recibida en cuentas de ahorros, Nequi, etc.</span>
+                            </div>
+                        </div>
+
+                        <!-- Detalle Técnico de la Sanción -->
+                        <div class="bg-amber-50/80 p-3.5 rounded-xl border border-amber-200 text-xs text-amber-950 flex items-start gap-2.5">
+                            <span class="font-bold">⚠️ Sanción Mínima por Extemporaneidad:</span>
+                            <span>Aplica sobre la UVT del año en que se presenta (<strong x-text="ANIO_PRESENTACION"></strong>: 10 UVT = <strong class="font-mono" x-text="formatCurrency(SANCION_MINIMA)"></strong> COP). No te arriesgues a pagar multas innecesarias.</span>
+                        </div>
+
+                        <div class="pt-4 mt-4 border-t border-sky-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <span class="text-xs text-ink-muted">¿Superas alguno de los topes o tienes dudas con tus certificados de ingresos?</span>
+                            <button @click="currentTab = 'contacto'" class="bg-primary hover:bg-blue-900 text-white font-bold px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-sm">
+                                Solicitar Revisión de Perfil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO A PASO -->
+                <div class="grid md:grid-cols-3 gap-8 mb-16">
+                    <div class="card-frost p-8">
+                        <div class="text-4xl font-bold font-mono text-primary/30 mb-4">01</div>
+                        <h4 class="text-xl font-bold text-ink mb-2">Envío de Documentos</h4>
+                        <p class="text-sm text-ink-muted leading-relaxed">Te enviamos la lista exacta de soportes requeridos. Los cargas con total privacidad y sin complicaciones.</p>
+                    </div>
+                    <div class="card-frost p-8">
+                        <div class="text-4xl font-bold font-mono text-primary/30 mb-4">02</div>
+                        <h4 class="text-xl font-bold text-ink mb-2">Optimización Fiscal</h4>
+                        <p class="text-sm text-ink-muted leading-relaxed">Revisamos cada deducción válida (dependientes, medicina prepagada, intereses de vivienda) para reducir al mínimo legal tu saldo a pagar.</p>
+                    </div>
+                    <div class="card-frost p-8">
+                        <div class="text-4xl font-bold font-mono text-primary/30 mb-4">03</div>
+                        <h4 class="text-xl font-bold text-ink mb-2">Presentación DIAN</h4>
+                        <p class="text-sm text-ink-muted leading-relaxed">Te explicamos en detalle el Formulario 210, firmamos y radicamos antes de tu fecha límite para evitar sanciones.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- PESTAÑA 3: PYMES & AUTOMATIZACIÓN -->
+        <!-- ========================================================================= -->
+        <div x-show="currentTab === 'pymes'" x-cloak x-transition:enter="transition duration-300 ease-out" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+            
+            <div class="relative py-20 px-4 border-b border-sky-100 overflow-hidden">
+                <div class="absolute inset-0 bg-cover bg-center z-0 filter brightness-95" style="background-image: url('bg_pymes_ai.jpg');"></div>
+                <div class="absolute inset-0 bg-gradient-to-b from-white/90 via-white/80 to-canvas z-0"></div>
+                
+                <div class="max-w-4xl mx-auto text-center relative z-10">
+                    <span class="text-xs font-mono text-primary font-bold uppercase tracking-widest bg-sky-100 px-3 py-1 rounded-full border border-sky-300">Inteligencia Artificial para Negocios</span>
+                    <h2 class="text-3xl sm:text-5xl font-bold text-ink font-display mt-4">Automatización y Eficiencia para Pymes</h2>
+                    <p class="text-ink-muted mt-4 text-base sm:text-lg max-w-2xl mx-auto">
+                        Integramos la potencia de <strong class="text-ink">Siigo</strong> con herramientas de <strong class="text-primary">Inteligencia Artificial</strong> para erradicar el trabajo manual, reducir errores contables y optimizar los costos de tu empresa.
+                    </p>
+                </div>
+            </div>
+
+            <section class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- PILARES DE IMPACTO -->
+                <div class="grid lg:grid-cols-3 gap-8 mb-16">
+                    <div class="card-frost p-8">
+                        <div class="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-700 flex items-center justify-center mb-6 border border-cyan-200 font-bold">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-ink mb-3">Automatización con IA</h3>
+                        <p class="text-sm text-ink-muted leading-relaxed">
+                            Extracción inteligente de datos de facturas y soportes, conciliación bancaria semiautónoma y clasificación contable con modelos de IA. Ahorra hasta un 60% del tiempo de digitación de tu equipo.
+                        </p>
+                    </div>
+
+                    <div class="card-frost p-8">
+                        <div class="w-12 h-12 rounded-2xl bg-blue-50 text-primary flex items-center justify-center mb-6 border border-blue-200 font-bold">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-ink mb-3">Especialistas en Siigo</h3>
+                        <p class="text-sm text-ink-muted leading-relaxed">
+                            Parametrización experta, migración limpia de saldos y optimización de flujos contables en <strong>Siigo</strong> (Nube y Pyme). Aseguramos que la facturación y nómina electrónica funcionen sin fricciones.
+                        </p>
+                    </div>
+
+                    <div class="card-frost p-8">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-6 border border-emerald-200 font-bold">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-ink mb-3">Dashboards & Power BI</h3>
+                        <p class="text-sm text-ink-muted leading-relaxed">
+                            Tableros visuales en Power BI y SQL conectados a tus operaciones. Margen por producto, control de tesorería y alertas tempranas de flujo de caja para directores y gerentes.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- ESPACIO RESERVADO: PROYECTOS DE AUTOMATIZACIÓN (SHOWCASE) -->
+                <div class="card-frost p-8 sm:p-12 mb-16 border-2 border-sky-300">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-4 mb-8">
+                        <div>
+                            <span class="text-xs font-mono text-primary font-bold uppercase tracking-widest">Laboratorio de Innovación</span>
+                            <h3 class="text-2xl sm:text-3xl font-bold text-ink mt-1">Proyectos de Automatización con IA</h3>
+                            <p class="text-sm text-ink-muted mt-1">Aquí compartimos casos de uso y soluciones creadas por JECAI para resolver retos reales.</p>
+                        </div>
+                        <span class="text-xs bg-white text-primary border border-sky-300 px-3 py-1.5 rounded-full font-mono shrink-0 shadow-sm">
+                            En Constante Actualización
+                        </span>
+                    </div>
+
+                    <!-- Grid de Proyectos Limpio y Claro -->
+                    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        
+                        <!-- Proyecto 1 -->
+                        <div class="bg-white/90 rounded-2xl p-6 border border-sky-200 hover:border-primary transition-all flex flex-col justify-between shadow-sm">
+                            <div>
+                                <div class="flex items-center justify-between text-xs font-mono text-ink-muted mb-3">
+                                    <span class="text-primary font-bold">Siigo + Python AI</span>
+                                    <span>Caso 01</span>
+                                </div>
+                                <h4 class="text-lg font-bold text-ink mb-2">Conciliación Bancaria Inteligente</h4>
+                                <p class="text-xs text-ink-muted leading-relaxed mb-4">
+                                    Cruce automatizado entre extractos bancarios en PDF/Excel y los comprobantes contables de Siigo, reduciendo el cierre mensual de 4 días a 2 horas.
+                                </p>
+                            </div>
+                            <div class="pt-4 border-t border-sky-100 flex items-center justify-between text-xs">
+                                <span class="text-ink-muted font-mono font-medium">Impacto: -80% tiempo</span>
+                                <a href="#" target="_blank" class="text-primary font-bold hover:underline flex items-center gap-1">Ver demo &rarr;</a>
+                            </div>
+                        </div>
+
+                        <!-- Proyecto 2 -->
+                        <div class="bg-white/90 rounded-2xl p-6 border border-sky-200 hover:border-primary transition-all flex flex-col justify-between shadow-sm">
+                            <div>
+                                <div class="flex items-center justify-between text-xs font-mono text-ink-muted mb-3">
+                                    <span class="text-primary font-bold">OCR + LLMs</span>
+                                    <span>Caso 02</span>
+                                </div>
+                                <h4 class="text-lg font-bold text-ink mb-2">Lectura & Causación de Facturas</h4>
+                                <p class="text-xs text-ink-muted leading-relaxed mb-4">
+                                    Procesamiento con IA que lee facturas de compra físicas o digitales, extrae NIT, base, IVA y retenciones, y las precarga en Siigo sin digitación manual.
+                                </p>
+                            </div>
+                            <div class="pt-4 border-t border-sky-100 flex items-center justify-between text-xs">
+                                <span class="text-ink-muted font-mono font-medium">Cero errores de digitación</span>
+                                <a href="#" target="_blank" class="text-primary font-bold hover:underline flex items-center gap-1">Ver demo &rarr;</a>
+                            </div>
+                        </div>
+
+                        <!-- Espacio Disponible para Nuevo Proyecto -->
+                        <div class="bg-white/40 rounded-2xl p-6 border-2 border-dashed border-sky-300 flex flex-col items-center justify-center text-center group hover:border-primary transition-all min-h-[220px]">
+                            <div class="w-12 h-12 rounded-full bg-white shadow-sm border border-sky-200 flex items-center justify-center text-primary mb-3 group-hover:scale-110 transition-transform">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            </div>
+                            <h4 class="text-sm font-bold text-ink mb-1">Próximo Proyecto en Desarrollo</h4>
+                            <p class="text-xs text-ink-muted max-w-[200px]">Automatización de auditoría de nómina y seguridad social con IA.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-frost p-8 sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-6 border-2 border-sky-300">
+                    <div>
+                        <h4 class="text-xl font-bold text-ink">¿Tienes un proceso repetitivo en tu empresa que quieras automatizar?</h4>
+                        <p class="text-sm text-ink-muted mt-1">Evaluamos la viabilidad técnica y te mostramos cómo la IA puede resolverlo en Siigo.</p>
+                    </div>
+                    <button @click="currentTab = 'contacto'" class="bg-primary hover:bg-blue-900 text-white font-bold px-6 py-3.5 rounded-xl text-sm shrink-0 transition-all shadow-md">
+                        Agendar Diagnóstico de Automatización
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- PESTAÑA 4: CALCULADORAS / MICRO-SAAS -->
+        <!-- ========================================================================= -->
+        <div x-show="currentTab === 'calculadoras'" x-cloak x-transition:enter="transition duration-300 ease-out" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+            
+            <div class="relative py-20 px-4 border-b border-sky-100 overflow-hidden">
+                <div class="absolute inset-0 bg-cover bg-center z-0 filter brightness-95" style="background-image: url('bg_fintech_tools.jpg');"></div>
+                <div class="absolute inset-0 bg-gradient-to-b from-white/90 via-white/80 to-canvas z-0"></div>
+                
+                <div class="max-w-4xl mx-auto text-center relative z-10">
+                    <span class="text-xs font-mono text-primary font-bold uppercase tracking-widest bg-sky-100 px-3 py-1 rounded-full border border-sky-300">Herramientas Públicas de Uso Libre</span>
+                    <h2 class="text-3xl sm:text-5xl font-bold text-ink font-display mt-4">Calculadora IVA & Retención en la Fuente <span x-text="ANIO_PRESENTACION"></span></h2>
+                    <p class="text-ink-muted mt-4 text-base sm:text-lg max-w-2xl mx-auto">
+                        Cálculos operativos actualizados con la UVT vigente (<span class="font-mono font-semibold" x-text="formatCurrency(UVT_OPERATIVA)"></span> COP) y la normativa del Decreto 572.
+                    </p>
+                </div>
+            </div>
+
+            <section class="py-12 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- TARJETA CALCULADORA EN ESTILO CARD-FROST -->
+                <div class="rounded-3xl overflow-hidden card-frost border-2 border-sky-300 shadow-xl text-ink">
+                    
+                    <!-- Header Calculadora -->
+                    <div class="bg-primary text-white p-6 flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-white/10 text-white rounded-xl flex items-center justify-center font-bold border border-white/20">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white leading-tight">Simulador Oficial de Retenciones e Impuestos</h3>
+                                <p class="text-xs text-blue-100">Servicios · Honorarios · Compras · Arrendamientos · Colombia</p>
+                            </div>
+                        </div>
+                        <span class="bg-white/20 text-white text-xs font-mono font-bold px-3 py-1 rounded-full border border-white/30" x-text="`UVT ${ANIO_PRESENTACION}: ${formatCurrency(UVT_OPERATIVA)}`"></span>
+                    </div>
+
+                    <!-- Selector de Concepto -->
+                    <div class="p-6 bg-sky-50/60 border-b border-sky-200">
+                        <label for="calcConceptoSelect" class="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2 font-mono">1. Selecciona el concepto de retención</label>
+                        <select id="calcConceptoSelect" class="w-full h-11 bg-white border border-sky-300 rounded-xl px-3 py-2 text-sm text-ink font-medium focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer"></select>
+                    </div>
+
+                    <!-- Formulario e Inputs -->
+                    <div class="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-sky-200">
+                        
+                        <!-- Panel de Parámetros -->
+                        <div class="p-6 space-y-4 bg-white">
+                            <p class="text-xs font-bold uppercase tracking-wider text-ink-muted mb-3 font-mono">2. Datos de la operación</p>
+                            
+                            <div>
+                                <label for="calcValorBase" class="block text-xs font-semibold text-ink mb-1">Valor base (sin IVA)</label>
+                                <div class="relative flex items-center">
+                                    <span class="absolute left-3 text-slate-400 font-bold">$</span>
+                                    <input type="text" id="calcValorBase" placeholder="0" class="w-full h-11 pl-8 pr-3 bg-white border border-sky-300 rounded-xl font-mono text-sm text-ink focus:border-primary outline-none">
+                                </div>
+                                <p class="text-[11px] text-ink-muted mt-1">Ingresa el valor antes de impuestos</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label for="calcTarifaIVA" class="block text-xs font-semibold text-ink mb-1">Tarifa IVA</label>
+                                    <select id="calcTarifaIVA" class="w-full h-10 bg-white border border-sky-300 rounded-xl px-2 text-xs text-ink focus:border-primary outline-none">
+                                        <option value="0">0% (Exento)</option>
+                                        <option value="5">5% (Diferencial)</option>
+                                        <option value="19" selected>19% (General)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="calcEsDeclarante" class="block text-xs font-semibold text-ink mb-1">Proveedor</label>
+                                    <select id="calcEsDeclarante" class="w-full h-10 border border-sky-300 bg-white rounded-xl px-2 text-xs text-ink focus:border-primary outline-none">
+                                        <option value="1">Declarante Renta</option>
+                                        <option value="0">No Declarante</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="p-3 bg-sky-50 rounded-xl border border-sky-200">
+                                <span class="text-xs text-ink-muted block font-semibold mb-0.5">Tarifa ReteFuente Aplicable:</span>
+                                <input type="text" id="calcTarifaReteDisplay" readonly class="w-full bg-white border border-sky-200 rounded-lg px-2 py-1 text-xs font-mono font-bold text-primary">
+                                <p id="calcHintRete" class="text-[11px] text-ink-muted mt-1 leading-tight"></p>
+                            </div>
+                        </div>
+
+                        <!-- Resumen y Resultados -->
+                        <div class="p-6 bg-sky-50/40 flex flex-col justify-between">
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-wider text-ink-muted mb-3 font-mono">Resumen de la factura</p>
+                                
+                                <div class="space-y-3 font-mono text-sm">
+                                    <div class="flex justify-between items-center py-1.5 border-b border-sky-200">
+                                        <span class="text-ink-muted font-sans text-xs">Valor Base:</span>
+                                        <span id="calcOutBase" class="font-bold text-ink">$ 0</span>
+                                    </div>
+                                    <div class="flex justify-between items-center py-1.5 border-b border-sky-200">
+                                        <span class="text-ink-muted font-sans text-xs">IVA (<span id="calcPctIvaTag">19%</span>):</span>
+                                        <span id="calcOutIVA" class="font-bold text-emerald-700">$ 0</span>
+                                    </div>
+                                    <div class="flex justify-between items-center py-1.5 border-b border-sky-200">
+                                        <span class="text-ink-muted font-sans text-xs">ReteFuente (<span id="calcPctReteTag">0%</span>):</span>
+                                        <span id="calcOutRete" class="font-bold text-rose-600">$ 0</span>
+                                    </div>
+                                    <div class="flex justify-between items-center pt-2 text-base font-bold text-ink">
+                                        <span class="font-sans text-sm">Total neto a pagar:</span>
+                                        <span id="calcOutTotal" class="text-xl text-primary">$ 0</span>
+                                    </div>
+                                </div>
+
+                                <!-- Aviso Base Mínima -->
+                                <div id="calcAvisoBase" class="hidden mt-4 p-3 rounded-xl text-xs leading-relaxed border"></div>
+                            </div>
+
+                            <div class="flex gap-2 mt-6">
+                                <button id="calcBtnCopiar" class="flex-1 bg-primary hover:bg-blue-900 text-white py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                    Copiar Resumen
+                                </button>
+                                <button id="calcBtnLimpiar" class="bg-slate-200 hover:bg-slate-300 text-ink px-4 py-2.5 rounded-xl text-xs font-semibold transition-all">
+                                    Limpiar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de Normativas Integrada -->
+                    <div class="border-t border-sky-200 p-6 bg-white">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4">
+                            <h4 class="font-bold text-sm text-ink flex items-center gap-2 font-display">
+                                <span>📋 Tabla de Conceptos y Tarifas Colombia <span x-text="ANIO_PRESENTACION"></span></span>
+                            </h4>
+                            <button id="calcBtnResetTable" class="text-xs text-rose-600 border border-rose-200 hover:bg-rose-50 px-2.5 py-1 rounded font-medium transition-colors">
+                                Restaurar Valores Originales
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto max-h-64 border border-sky-200 rounded-xl">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead class="bg-sky-100 text-ink sticky top-0 border-b border-sky-200">
+                                    <tr>
+                                        <th class="p-2.5 font-semibold">Concepto</th>
+                                        <th class="p-2.5 font-semibold">Declarante</th>
+                                        <th class="p-2.5 font-semibold">No Declarante</th>
+                                        <th class="p-2.5 font-semibold">Base Mínima</th>
+                                        <th class="p-2.5 font-semibold">Fuente Legal</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="calcNormTableBody" class="divide-y divide-sky-100"></tbody>
+                            </table>
+                        </div>
+                        <p class="text-[11px] text-ink-muted mt-2 text-center" x-text="`UVT ${ANIO_PRESENTACION}: ${formatCurrency(UVT_OPERATIVA)} · Decreto 572 vigente.`"></p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- PESTAÑA 5: CONTACTO -->
+        <!-- ========================================================================= -->
+        <div x-show="currentTab === 'contacto'" x-cloak x-transition:enter="transition duration-300 ease-out" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
+            
+            <div class="relative py-20 px-4 border-b border-sky-100 overflow-hidden">
+                <div class="absolute inset-0 bg-cover bg-center z-0 filter brightness-95" style="background-image: url('bg_contact_support.jpg');"></div>
+                <div class="absolute inset-0 bg-gradient-to-b from-white/90 via-white/80 to-canvas z-0"></div>
+                
+                <div class="max-w-4xl mx-auto text-center relative z-10">
+                    <span class="text-xs font-mono text-primary font-bold uppercase tracking-widest bg-sky-100 px-3 py-1 rounded-full border border-sky-300">Respuesta Prioritaria</span>
+                    <h2 class="text-3xl sm:text-5xl font-bold text-ink font-display mt-4">Inicia la conversación</h2>
+                    <p class="text-ink-muted mt-4 text-base sm:text-lg max-w-2xl mx-auto">
+                        Cuéntanos sobre tu caso tributario o los procesos que deseas automatizar en tu Pyme.
+                    </p>
+                </div>
+            </div>
+
+            <section class="py-16 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="card-frost p-8 sm:p-12 border-2 border-sky-300 shadow-xl relative overflow-hidden">
+                    
+                    <form id="jecaiMainContactForm" class="space-y-6 relative z-10">
+                        
+                        <!-- Tipo de Solicitud -->
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-2 font-mono">¿En qué categoría te ubicas?</label>
+                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                <label class="flex items-center gap-2 bg-white p-3.5 rounded-xl border border-sky-200 cursor-pointer hover:border-primary">
+                                    <input type="radio" name="tipo_cliente" value="Persona Natural" checked class="text-primary focus:ring-0">
+                                    <span class="text-ink text-xs font-medium">Persona Natural (Renta)</span>
+                                </label>
+                                <label class="flex items-center gap-2 bg-white p-3.5 rounded-xl border border-sky-200 cursor-pointer hover:border-primary">
+                                    <input type="radio" name="tipo_cliente" value="Empresa / Pyme" class="text-primary focus:ring-0">
+                                    <span class="text-ink text-xs font-medium">Pyme (IA / Siigo)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Datos de Contacto -->
+                        <div class="grid sm:grid-cols-2 gap-6">
+                            <div>
+                                <label for="nombre" class="block text-xs font-semibold text-ink mb-2">Nombre Completo o Razón Social *</label>
+                                <input type="text" id="nombre" name="nombre" required 
+                                    class="w-full bg-white border border-sky-300 rounded-xl px-4 py-3 text-ink text-sm focus:outline-none focus:border-primary transition-colors"
+                                    placeholder="Ej. Carolina Gómez / Logística SAS">
+                            </div>
+                            <div>
+                                <label for="telefono" class="block text-xs font-semibold text-ink mb-2">WhatsApp o Teléfono de Contacto *</label>
+                                <input type="tel" id="telefono" name="telefono" required 
+                                    class="w-full bg-white border border-sky-300 rounded-xl px-4 py-3 text-ink text-sm focus:outline-none focus:border-primary transition-colors"
+                                    placeholder="Ej. 300 000 0000">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="correo" class="block text-xs font-semibold text-ink mb-2">Correo Electrónico *</label>
+                            <input type="email" id="correo" name="correo" required 
+                                class="w-full bg-white border border-sky-300 rounded-xl px-4 py-3 text-ink text-sm focus:outline-none focus:border-primary transition-colors"
+                                placeholder="nombre@ejemplo.com">
+                        </div>
+
+                        <div>
+                            <label for="mensaje" class="block text-xs font-semibold text-ink mb-2">Párrafo explicativo del requerimiento *</label>
+                            <textarea id="mensaje" name="mensaje" rows="4" required 
+                                class="w-full bg-white border border-sky-300 rounded-xl px-4 py-3 text-ink text-sm focus:outline-none focus:border-primary transition-colors resize-none"
+                                placeholder="Describe brevemente lo que necesitas (ej. 'Quiero que revisen mis certificados para la declaración de renta' o 'Necesito automatizar la entrada de facturas en Siigo con IA')."></textarea>
+                        </div>
+
+                        <!-- Badge de Confidencialidad -->
+                        <div class="flex items-center gap-2 text-[11px] text-ink-muted bg-sky-50 p-3 rounded-xl border border-sky-200">
+                            <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            <span>Datos protegidos bajo la Ley 1581 (Habeas Data). Recibirás atención directa de un Contador Público.</span>
+                        </div>
+
+                        <button type="submit" id="mainSubmitBtn" class="w-full bg-primary hover:bg-blue-900 text-white font-bold py-4 rounded-xl shadow-md transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2">
+                            <span>Enviar Solicitud</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+
+                        <div id="mainFormStatus" class="hidden text-center p-4 rounded-xl text-xs font-medium border"></div>
+                    </form>
+                </div>
+
+                <div class="mt-8 text-center">
+                    <p class="text-xs text-ink-muted">Canal oficial de atención escrita:</p>
+                    <a href="mailto:atencionalclientejec@gmail.com" class="inline-flex items-center gap-2 text-primary font-bold hover:underline font-mono text-sm mt-1 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        atencionalclientejec@gmail.com
+                    </a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- FOOTER GENERAL CORPORATIVO -->
+    <footer class="border-t border-slate-200 bg-white py-12 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center">
+            <img class="h-16 w-auto rounded-xl mb-4 shadow-sm border border-slate-200" src="Logotipo JECAI.jpg" alt="JECAI Logo">
+            <h4 class="text-ink font-display font-bold text-xl tracking-wider">JECAI</h4>
+            <p class="text-primary text-xs uppercase tracking-widest font-mono mb-6 font-semibold">Optimiza tus procesos · Contabilidad Inteligente</p>
+            
+            <div class="flex flex-wrap justify-center gap-6 text-xs text-ink-muted mb-8 font-medium">
+                <button @click="currentTab = 'inicio'" class="hover:text-primary transition-colors">Inicio</button>
+                <button @click="currentTab = 'naturales'" class="hover:text-primary transition-colors">Declaración de Renta</button>
+                <button @click="currentTab = 'pymes'" class="hover:text-primary transition-colors">Automatización Pymes & IA</button>
+                <button @click="currentTab = 'calculadoras'" class="hover:text-primary transition-colors">Calculadoras</button>
+                <button @click="currentTab = 'contacto'" class="hover:text-primary transition-colors">Contacto</button>
+            </div>
+
+            <p class="text-xs text-slate-500">
+                &copy; <span x-text="ANIO_PRESENTACION"></span> JECAI. Todos los derechos reservados · Colombia · Normativa NIIF y E.T. vigente.
+            </p>
+        </div>
+    </footer>
+
+    <!-- ========================================================================= -->
+    <!-- REPRODUCTOR DE MÚSICA AMBIENTAL FLOTANTE (JECAI SOUNDSCAPE) -->
+    <!-- ========================================================================= -->
+    <audio id="bgAudio" loop preload="auto">
+        <source src="musica_fondo.mp3" type="audio/mpeg">
+        Tu navegador no soporta el elemento de audio.
+    </audio>
+
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-2">
+        <div class="card-frost px-4 py-2.5 flex items-center gap-3 border border-sky-300 shadow-xl backdrop-blur-md bg-white/90">
+            <!-- Botón Play/Pause -->
+            <button id="audioToggleBtn" type="button" class="w-8 h-8 rounded-full bg-primary hover:bg-blue-900 text-white flex items-center justify-center transition-transform hover:scale-105 shadow-sm" title="Reproducir / Pausar Música de Fondo">
+                <svg id="playIcon" class="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <svg id="pauseIcon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+
+            <!-- Animación de Ondas & Texto -->
+            <div class="flex items-center gap-2 cursor-pointer select-none" id="audioLabel">
+                <div class="flex items-end gap-0.5 h-4 w-4" id="soundWaves">
+                    <span class="w-1 bg-sky-300 rounded-full h-1"></span>
+                    <span class="w-1 bg-primary rounded-full h-1"></span>
+                    <span class="w-1 bg-sky-400 rounded-full h-1"></span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-[11px] font-bold text-ink leading-tight">Música Ambiental</span>
+                    <span id="audioStatusText" class="text-[9px] text-ink-muted font-mono leading-none">Pausado</span>
+                </div>
+            </div>
+
+            <!-- Slider de Volumen -->
+            <div class="hidden sm:flex items-center pl-2 border-l border-sky-200">
+                <input id="volumeSlider" type="range" min="0" max="1" step="0.05" value="0.25" class="w-16 h-1.5 bg-sky-100 rounded-lg appearance-none cursor-pointer accent-primary" title="Volumen">
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- LÓGICA JAVASCRIPT: MOTOR TRIBUTARIO CENTRALIZADO + CALCULADORA + FORM -->
+    <!-- ========================================================================= -->
+    <script>
+        /**
+         * MOTOR DE CONFIGURACIÓN TRIBUTARIA CENTRALIZADA (JECAI CONFIG)
+         * Se encarga de desacoplar los topes del año gravable y las sanciones/retenciones del año de presentación.
+         */
+        const JECAI_CONFIG = {
+            ANIO_PRESENTACION: 2026,
+            ANIO_GRAVABLE: 2025,
+            
+            // UVTs Oficiales DIAN
+            UVT_2025: 49799, // Para topes del año que se declara
+            UVT_2026: 52374, // Para sanciones y retenciones del año en curso
+        };
+
+        // Función Alpine para vincular los valores dinámicamente en todo el HTML
+        function jecaiApp() {
+            const uvtGravable = JECAI_CONFIG.UVT_2025;
+            const uvtOperativa = JECAI_CONFIG.UVT_2026;
+            
+            return {
+                currentTab: 'inicio',
+                ANIO_PRESENTACION: JECAI_CONFIG.ANIO_PRESENTACION,
+                ANIO_GRAVABLE: JECAI_CONFIG.ANIO_GRAVABLE,
+                UVT_GRAVABLE: uvtGravable,
+                UVT_OPERATIVA: uvtOperativa,
+                
+                // Topes de Renta calculados exactamente con UVT 2025
+                TOPE_INGRESOS_ANIO: 1400 * uvtGravable,             // $69.718.600
+                TOPE_INGRESOS_MES: Math.round((1400 * uvtGravable) / 12), // $5.809.883
+                TOPE_PATRIMONIO: 4500 * uvtGravable,               // $224.095.500
+                
+                // Sanción Mínima calculada con UVT 2026 (10 UVT vigentes al presentar)
+                SANCION_MINIMA: 10 * uvtOperativa,                  // $523.740
+                
+                ingresoMensual: 6000000,
+                
+                formatCurrency(val) {
+                    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(val);
+                }
+            }
+        }
+
+        /**
+         * EFECTO DINÁMICO AZUL QUE SIGUE AL CURSOR (SPOTLIGHT)
+         */
+        const cursorGlow = document.getElementById('cursorGlow');
+        window.addEventListener('mousemove', (e) => {
+            cursorGlow.style.left = e.clientX + 'px';
+            cursorGlow.style.top = e.clientY + 'px';
+        });
+
+        /**
+         * CONTROL DE MÚSICA AMBIENTAL (JECAI SOUNDSCAPE)
+         */
+        const bgAudio = document.getElementById('bgAudio');
+        const audioToggleBtn = document.getElementById('audioToggleBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const audioStatusText = document.getElementById('audioStatusText');
+        const soundWaves = document.getElementById('soundWaves');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const audioLabel = document.getElementById('audioLabel');
+
+        // Volumen inicial suave (25%) para no saturar al usuario
+        bgAudio.volume = 0.25;
+
+        function updateAudioUI(isPlaying) {
+            if (isPlaying) {
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+                audioStatusText.textContent = 'Sonando';
+                audioStatusText.classList.add('text-primary', 'font-bold');
+                // Activar animación de ondas
+                const bars = soundWaves.querySelectorAll('span');
+                bars[0].className = 'w-1 bg-sky-400 rounded-full animate-wave-1';
+                bars[1].className = 'w-1 bg-primary rounded-full animate-wave-2';
+                bars[2].className = 'w-1 bg-accent rounded-full animate-wave-3';
+            } else {
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                audioStatusText.textContent = 'Pausado';
+                audioStatusText.classList.remove('text-primary', 'font-bold');
+                // Desactivar animación de ondas
+                const bars = soundWaves.querySelectorAll('span');
+                bars.forEach(b => b.className = 'w-1 bg-sky-200 rounded-full h-1');
+            }
+        }
+
+        function toggleAudio() {
+            if (bgAudio.paused) {
+                bgAudio.play()
+                    .then(() => updateAudioUI(true))
+                    .catch(err => console.log("Interacción requerida para reproducir audio"));
+            } else {
+                bgAudio.pause();
+                updateAudioUI(false);
+            }
+        }
+
+        audioToggleBtn.addEventListener('click', toggleAudio);
+        audioLabel.addEventListener('click', toggleAudio);
+
+        volumeSlider.addEventListener('input', (e) => {
+            bgAudio.volume = parseFloat(e.target.value);
+            if (bgAudio.paused && bgAudio.volume > 0) {
+                bgAudio.play().then(() => updateAudioUI(true)).catch(() => {});
+            }
+        });
+
+        // Autoplay amigable: si el usuario hace clic en cualquier lugar por primera vez, reproduce suavemente
+        let audioUnlocked = false;
+        document.addEventListener('click', function unlockAudio() {
+            if (!audioUnlocked) {
+                audioUnlocked = true;
+                bgAudio.play()
+                    .then(() => updateAudioUI(true))
+                    .catch(() => {});
+                document.removeEventListener('click', unlockAudio);
+            }
+        }, { once: true });
+
+        /**
+         * CALCULADORA RETE-FUENTE 2026 (Opera con la UVT de vigencia operativa 2026)
+         */
+        const UVT = JECAI_CONFIG.UVT_2026;
+        const LOCAL_STORAGE_KEY = 'jecai_retefuente_2026';
+
+        const CONCEPTOS_DEFAULT = [
+          { id: 'hon_pj', label: 'Honorarios — P. Jurídica', sector: 'Honorarios y servicios profesionales', baseMinimaUVT: null, declarante: 11, noDeclarante: 11, fuente: 'Art. 392 E.T. / Art. 1.2.4.3.1 DUT 1625', nota: 'Personas jurídicas: siempre 11%, sin cuantía mínima.' },
+          { id: 'hon_pn', label: 'Honorarios — P. Natural', sector: 'Honorarios y servicios profesionales', baseMinimaUVT: null, declarante: 10, noDeclarante: 11, fuente: 'Art. 392 E.T. / Art. 1.2.4.3.1 DUT 1625', nota: 'Persona natural: 10% declarante, 11% no declarante. Sin base mínima.' },
+          { id: 'consultoria', label: 'Consultoría / Administración delegada', sector: 'Honorarios y servicios profesionales', baseMinimaUVT: null, declarante: 11, noDeclarante: 10, fuente: 'Art. 392 E.T. / Arts. 1.2.4.10.2-3 DUT 1625', nota: 'P. Jurídica declarante: 11%. No declarante: 10%.' },
+          { id: 'consultoria_ing', label: 'Consultoría ingeniería / infraestructura', sector: 'Honorarios y servicios profesionales', baseMinimaUVT: null, declarante: 6, noDeclarante: 10, fuente: 'Art. 392 E.T. / Art. 1.2.4.10.3 DUT 1625', nota: 'Declarante: 6%. No declarante: 10%.' },
+          { id: 'serv_general', label: 'Servicios generales (declarante)', sector: 'Servicios generales', baseMinimaUVT: 2, declarante: 4, noDeclarante: 4, fuente: 'Art. 392 E.T. / Dec. 572', nota: 'Desde jul-2026 (Decreto 572): base mínima 2 UVT ($104.748).' },
+          { id: 'serv_no_decl', label: 'Servicios generales (no declarante)', sector: 'Servicios generales', baseMinimaUVT: 2, declarante: 4, noDeclarante: 6, fuente: 'Art. 392 E.T. / Dec. 572', nota: 'No declarante: 6%. Base mínima 2 UVT ($104.748).' },
+          { id: 'vigilancia_aseo', label: 'Vigilancia / Aseo / Temporales (AIU)', sector: 'Servicios generales', baseMinimaUVT: 2, declarante: 2, noDeclarante: 2, fuente: 'Art. 462-1 E.T.', nota: 'Tarifa del 2% sobre el componente AIU.' },
+          { id: 'transporte_carga', label: 'Transporte de carga terrestre', sector: 'Servicios generales', baseMinimaUVT: 2, declarante: 1, noDeclarante: 1, fuente: 'Arts. 1.2.4.4.8 DUT 1625', nota: 'Base 2 UVT ($104.748) desde jul-2026.' },
+          { id: 'transporte_pasajeros', label: 'Transporte de pasajeros', sector: 'Servicios generales', baseMinimaUVT: 10, declarante: 3.5, noDeclarante: 3.5, fuente: 'Arts. 1.2.4.10.6 DUT 1625', nota: 'Mantiene base de 10 UVT ($523.740).' },
+          { id: 'hoteles', label: 'Hoteles / Restaurantes / Hospedaje', sector: 'Servicios generales', baseMinimaUVT: 2, declarante: 3.5, noDeclarante: 3.5, fuente: 'Dec. 572', nota: 'Base 2 UVT ($104.748) desde jul-2026.' },
+          { id: 'software', label: 'Licenciamiento / Software / SaaS', sector: 'Servicios generales', baseMinimaUVT: null, declarante: 3.5, noDeclarante: 3.5, fuente: 'Art. 1.2.4.3.1 DUT 1625', nota: 'Sin cuantía mínima. Aplica sobre el valor del licenciamiento.' },
+          { id: 'compras_bienes', label: 'Compra de bienes muebles generales', sector: 'Compraventa de bienes', baseMinimaUVT: 10, declarante: 2.5, noDeclarante: 3.5, fuente: 'Art. 401 E.T. / Dec. 572', nota: 'Desde jul-2026: base 10 UVT ($523.740). Declarante 2.5%, no declarante 3.5%.' },
+          { id: 'compra_vehiculos', label: 'Compra de vehículos', sector: 'Compraventa de bienes', baseMinimaUVT: 10, declarante: 1, noDeclarante: 1, fuente: 'Art. 1.2.4.9.1 DUT 1625', nota: 'Base 10 UVT ($523.740).' },
+          { id: 'tarjetas', label: 'Compras con tarjeta débito/crédito', sector: 'Compraventa de bienes', baseMinimaUVT: null, declarante: 1.5, noDeclarante: 1.5, fuente: 'Art. 1.3.2.1.8 DUT 1625', nota: 'Practicada por entidad financiera desde el primer peso.' },
+          { id: 'arrend_inmueble', label: 'Arrendamiento de inmuebles', sector: 'Arrendamientos', baseMinimaUVT: 10, declarante: 3.5, noDeclarante: 3.5, fuente: 'Art. 1.2.4.10.6 DUT 1625', nota: 'Base mínima 10 UVT ($523.740) sobre canon mensual.' },
+          { id: 'arrend_mueble', label: 'Arrendamiento de bienes muebles', sector: 'Arrendamientos', baseMinimaUVT: null, declarante: 4, noDeclarante: 4, fuente: 'Art. 398 E.T.', nota: 'Sin cuantía mínima. Aplica desde el primer peso.' },
+          { id: 'bienes_raices_vivienda', label: 'Compraventa inmueble — Vivienda (≤ 10.000 UVT)', sector: 'Inmobiliarias', baseMinimaUVT: 10, declarante: 1, noDeclarante: 1, fuente: 'Art. 1.2.4.9.1 DUT 1625', nota: 'Hasta $523.740.000: 1%. Exceso: 2.5%.' },
+          { id: 'bienes_raices_comercial', label: 'Compraventa inmueble — Uso comercial / otros', sector: 'Inmobiliarias', baseMinimaUVT: 10, declarante: 2.5, noDeclarante: 2.5, fuente: 'Art. 1.2.4.9.1 DUT 1625', nota: 'Base 10 UVT ($523.740).' },
+          { id: 'construccion', label: 'Contratos de construcción / Urbanización', sector: 'Inmobiliarias', baseMinimaUVT: 10, declarante: 2, noDeclarante: 2, fuente: 'Art. 1.2.4.9.1 DUT 1625', nota: 'Base mínima 10 UVT ($523.740).' },
+          { id: 'activos_fijos', label: 'Enajenación activos fijos — P. Natural', sector: 'Inmobiliarias', baseMinimaUVT: 10, declarante: 1, noDeclarante: 1, fuente: 'Arts. 398-399 E.T.', nota: 'Solo personas naturales. Base 10 UVT ($523.740).' }
+        ];
+
+        let CONCEPTOS = [];
+        let conceptoActual = null;
+
+        function inicializarConceptos() {
+            const dataGuardada = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (dataGuardada) {
+                try {
+                    CONCEPTOS = JSON.parse(dataGuardada);
+                    if (!Array.isArray(CONCEPTOS) || CONCEPTOS.length !== CONCEPTOS_DEFAULT.length) throw new Error();
+                } catch(e) {
+                    CONCEPTOS = JSON.parse(JSON.stringify(CONCEPTOS_DEFAULT));
+                }
+            } else {
+                CONCEPTOS = JSON.parse(JSON.stringify(CONCEPTOS_DEFAULT));
+            }
+        }
+
+        const elCalcConceptoSelect = document.getElementById('calcConceptoSelect');
+        const elCalcValorBase = document.getElementById('calcValorBase');
+        const elCalcTarifaIVA = document.getElementById('calcTarifaIVA');
+        const elCalcEsDeclarante = document.getElementById('calcEsDeclarante');
+        const elCalcTarifaReteDisplay = document.getElementById('calcTarifaReteDisplay');
+        const elCalcHintRete = document.getElementById('calcHintRete');
+        const elCalcAvisoBase = document.getElementById('calcAvisoBase');
+
+        const elCalcOutBase = document.getElementById('calcOutBase');
+        const elCalcOutIVA = document.getElementById('calcOutIVA');
+        const elCalcOutRete = document.getElementById('calcOutRete');
+        const elCalcOutTotal = document.getElementById('calcOutTotal');
+        const elCalcPctIvaTag = document.getElementById('calcPctIvaTag');
+        const elCalcPctReteTag = document.getElementById('calcPctReteTag');
+
+        function formatCOP(v) {
+            if (isNaN(v) || v === null) return '$ 0';
+            return '$ ' + v.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        function parseInputCOP(s) {
+            if (!s) return 0;
+            return parseFloat(s.replace(/[^\d]/g, '')) || 0;
+        }
+
+        function poblarConceptoSelect() {
+            elCalcConceptoSelect.innerHTML = '';
+            const sectores = [...new Set(CONCEPTOS.map(c => c.sector))];
+            sectores.forEach(sec => {
+                const grp = document.createElement('optgroup');
+                grp.label = sec;
+                grp.className = "bg-slate-50 text-ink-muted font-bold";
+                CONCEPTOS.filter(c => c.sector === sec).forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.className = "text-ink font-normal";
+                    const declUI = c.declarante === c.noDeclarante ? `${c.declarante}%` : `${c.declarante}% | ${c.noDeclarante}%`;
+                    const baseUI = c.baseMinimaUVT === null ? 'Sin base' : `Base ${c.baseMinimaUVT} UVT`;
+                    opt.textContent = `${c.label} (${declUI} - ${baseUI})`;
+                    grp.appendChild(opt);
+                });
+                elCalcConceptoSelect.appendChild(grp);
+            });
+            conceptoActual = CONCEPTOS[0];
+        }
+
+        function poblarTablaNormativa() {
+            const tbody = document.getElementById('calcNormTableBody');
+            tbody.innerHTML = '';
+            CONCEPTOS.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-sky-50/50 transition-colors";
+                const baseTxt = c.baseMinimaUVT === null ? 'Sin mínima' : `${c.baseMinimaUVT} UVT (${formatCOP(c.baseMinimaUVT * UVT)})`;
+                tr.innerHTML = `
+                    <td class="p-2.5 font-medium text-ink">${c.label}</td>
+                    <td class="p-2.5 text-primary font-mono font-bold">${c.declarante}%</td>
+                    <td class="p-2.5 text-primary font-mono font-bold">${c.noDeclarante}%</td>
+                    <td class="p-2.5 text-ink-muted font-mono text-[11px]">${baseTxt}</td>
+                    <td class="p-2.5 text-slate-400 text-[11px]">${c.fuente}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function ejecutarCalculo() {
+            const base = parseInputCOP(elCalcValorBase.value);
+            const esDecl = parseInt(elCalcEsDeclarante.value, 10) === 1;
+            const tarifaRete = esDecl ? conceptoActual.declarante : conceptoActual.noDeclarante;
+            const pctIVA = parseFloat(elCalcTarifaIVA.value) || 0;
+
+            const baseMinUVT = conceptoActual.baseMinimaUVT;
+            const baseMinPesos = baseMinUVT ? Math.round(baseMinUVT * UVT) : 0;
+            const superaBase = baseMinUVT === null || base >= baseMinPesos;
+
+            if (baseMinUVT !== null && base > 0 && !superaBase) {
+                elCalcAvisoBase.className = "mt-4 p-3 rounded-xl text-xs leading-relaxed bg-amber-50 border border-amber-300 text-amber-900 block";
+                elCalcAvisoBase.innerHTML = `⚠️ <strong>No aplica retención:</strong> El valor ingresado (${formatCOP(base)}) no supera la cuantía mínima de <strong>${baseMinUVT} UVT (${formatCOP(baseMinPesos)})</strong> para este concepto. Retención = $0.`;
+            } else if (baseMinUVT !== null && base >= baseMinPesos && base > 0) {
+                elCalcAvisoBase.className = "mt-4 p-3 rounded-xl text-xs leading-relaxed bg-emerald-50 border border-emerald-300 text-emerald-900 block";
+                elCalcAvisoBase.innerHTML = `✓ <strong>Retención aplicable:</strong> Supera la base mínima de ${baseMinUVT} UVT (${formatCOP(baseMinPesos)}).`;
+            } else if (baseMinUVT === null && base > 0) {
+                elCalcAvisoBase.className = "mt-4 p-3 rounded-xl text-xs leading-relaxed bg-blue-50 border border-blue-200 text-primary block";
+                elCalcAvisoBase.innerHTML = `ℹ️ Este concepto <strong>no tiene cuantía mínima</strong>: retención desde el primer peso.`;
+            } else {
+                elCalcAvisoBase.className = "hidden";
+            }
+
+            const valorIVA = base * (pctIVA / 100);
+            const valorRete = superaBase ? base * (tarifaRete / 100) : 0;
+            const totalNeto = base + valorIVA - valorRete;
+
+            elCalcOutBase.textContent = formatCOP(base);
+            elCalcOutIVA.textContent = formatCOP(valorIVA);
+            elCalcOutRete.textContent = formatCOP(valorRete);
+            elCalcOutTotal.textContent = formatCOP(totalNeto);
+
+            elCalcPctIvaTag.textContent = pctIVA + '%';
+            elCalcPctReteTag.textContent = (superaBase ? tarifaRete : 0) + '%';
+            elCalcTarifaReteDisplay.value = `${tarifaRete}% (${esDecl ? 'Declarante' : 'No declarante'})`;
+            elCalcHintRete.textContent = conceptoActual.nota;
+        }
+
+        elCalcConceptoSelect.addEventListener('change', (e) => {
+            conceptoActual = CONCEPTOS.find(c => c.id === e.target.value);
+            ejecutarCalculo();
+        });
+        elCalcValorBase.addEventListener('input', (e) => {
+            const raw = e.target.value.replace(/[^\d]/g, '');
+            e.target.value = raw ? parseInt(raw, 10).toLocaleString('es-CO') : '';
+            ejecutarCalculo();
+        });
+        elCalcTarifaIVA.addEventListener('change', ejecutarCalculo);
+        elCalcEsDeclarante.addEventListener('change', ejecutarCalculo);
+
+        document.getElementById('calcBtnCopiar').addEventListener('click', () => {
+            const base = parseInputCOP(elCalcValorBase.value);
+            if (!base) return alert("Ingresa un valor base para copiar.");
+            const texto = `RESUMEN DE FACTURA - JECAI (Colombia ${JECAI_CONFIG.ANIO_PRESENTACION})\n` +
+                          `Concepto: ${conceptoActual.label}\n` +
+                          `Base: ${elCalcOutBase.textContent}\n` +
+                          `IVA (${elCalcPctIvaTag.textContent}): ${elCalcOutIVA.textContent}\n` +
+                          `ReteFuente (${elCalcPctReteTag.textContent}): ${elCalcOutRete.textContent}\n` +
+                          `Total Neto a Pagar: ${elCalcOutTotal.textContent}\n` +
+                          `UVT Operativa ${JECAI_CONFIG.ANIO_PRESENTACION}: ${formatCOP(UVT)} · Generado en JECAI Contable`;
+            navigator.clipboard.writeText(texto).then(() => alert("✓ Resumen copiado al portapapeles"));
+        });
+
+        document.getElementById('calcBtnLimpiar').addEventListener('click', () => {
+            elCalcValorBase.value = '';
+            elCalcTarifaIVA.value = '19';
+            elCalcEsDeclarante.value = '1';
+            ejecutarCalculo();
+        });
+
+        document.getElementById('calcBtnResetTable').addEventListener('click', () => {
+            if (confirm(`¿Deseas restaurar la tabla con las tarifas oficiales de ${JECAI_CONFIG.ANIO_PRESENTACION}?`)) {
+                CONCEPTOS = JSON.parse(JSON.stringify(CONCEPTOS_DEFAULT));
+                localStorage.removeItem(LOCAL_STORAGE_KEY);
+                poblarConceptoSelect();
+                poblarTablaNormativa();
+                ejecutarCalculo();
+            }
+        });
+
+        inicializarConceptos();
+        poblarConceptoSelect();
+        poblarTablaNormativa();
+        ejecutarCalculo();
+
+        /**
+         * CONEXIÓN FORMULARIO GOOGLE SHEETS
+         */
+        const GOOGLE_SCRIPT_URL = "URL_DEL_SCRIPT_DE_GOOGLE_AQUI";
+
+        document.getElementById('jecaiMainContactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('mainSubmitBtn');
+            const status = document.getElementById('mainFormStatus');
+            const originalText = btn.innerHTML;
+
+            btn.innerHTML = 'Enviando...';
+            btn.disabled = true;
+
+            if (GOOGLE_SCRIPT_URL === "URL_DEL_SCRIPT_DE_GOOGLE_AQUI") {
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    status.className = "mt-4 p-4 rounded-xl text-xs font-semibold bg-emerald-50 border border-emerald-300 text-emerald-800 block";
+                    status.innerHTML = "<strong>¡Mensaje recibido con éxito!</strong> Nos comunicaremos contigo en el menor tiempo posible al correo o WhatsApp indicado.";
+                    document.getElementById('jecaiMainContactForm').reset();
+                }, 1200);
+                return;
+            }
+
+            const formData = new FormData(this);
+            fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData })
+                .then(r => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    status.className = "mt-4 p-4 rounded-xl text-xs font-semibold bg-emerald-50 border border-emerald-300 text-emerald-800 block";
+                    status.innerHTML = "<strong>¡Mensaje enviado con éxito!</strong> Nuestro equipo se comunicará contigo de inmediato.";
+                    this.reset();
+                })
+                .catch(err => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    status.className = "mt-4 p-4 rounded-xl text-xs font-semibold bg-rose-50 border border-rose-300 text-rose-800 block";
+                    status.innerHTML = "Ocurrió un error al enviar el mensaje. Por favor escríbenos directamente a atencionalclientejec@gmail.com";
+                });
+        });
+    </script>
+</body>
+</html>

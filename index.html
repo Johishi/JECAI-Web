@@ -1187,7 +1187,7 @@
         /**
          * CONEXIÓN FORMULARIO GOOGLE SHEETS
          */
-        const GOOGLE_SCRIPT_URL = "URL_DEL_SCRIPT_DE_GOOGLE_AQUI";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzCc4o4lHTQd5YMZ6MitUQPm5y70h7jpjsO1mox-hJz2ZC9e1uhlnI90_-RgYheEuG9YQ/exec";
 
         document.getElementById('jecaiMainContactForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -1195,35 +1195,35 @@
             const status = document.getElementById('mainFormStatus');
             const originalText = btn.innerHTML;
 
-            btn.innerHTML = 'Enviando...';
+            btn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg> Enviando Solicitud...
+            `;
             btn.disabled = true;
 
-            if (GOOGLE_SCRIPT_URL === "URL_DEL_SCRIPT_DE_GOOGLE_AQUI") {
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                    status.className = "mt-4 p-4 rounded-xl text-xs font-semibold bg-emerald-50 border border-emerald-300 text-emerald-800 block";
-                    status.innerHTML = "<strong>¡Mensaje recibido con éxito!</strong> Nos comunicaremos contigo en el menor tiempo posible al correo o WhatsApp indicado.";
-                    document.getElementById('jecaiMainContactForm').reset();
-                }, 1200);
-                return;
-            }
-
             const formData = new FormData(this);
-            fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData })
-                .then(r => {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                    status.className = "mt-4 p-4 rounded-xl text-xs font-semibold bg-emerald-50 border border-emerald-300 text-emerald-800 block";
-                    status.innerHTML = "<strong>¡Mensaje enviado con éxito!</strong> Nuestro equipo se comunicará contigo de inmediato.";
-                    this.reset();
-                })
-                .catch(err => {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                    status.className = "mt-4 p-4 rounded-xl text-xs font-semibold bg-rose-50 border border-rose-300 text-rose-800 block";
-                    status.innerHTML = "Ocurrió un error al enviar el mensaje. Por favor escríbenos directamente a atencionalclientejec@gmail.com";
-                });
+
+            // Envío compatible con Google Apps Script redirects
+            fetch(GOOGLE_SCRIPT_URL, { 
+                method: 'POST', 
+                body: formData,
+                mode: 'no-cors'
+            })
+            .then(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                status.className = "mt-4 p-4 rounded-xl text-xs font-semibold bg-emerald-50 border border-emerald-300 text-emerald-800 block shadow-sm";
+                status.innerHTML = "✓ <strong>¡Solicitud enviada con éxito!</strong> Tu información ha sido recibida por nuestro equipo contable. Nos comunicaremos contigo en breve.";
+                document.getElementById('jecaiMainContactForm').reset();
+            })
+            .catch(err => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                status.className = "mt-4 p-4 rounded-xl text-xs font-semibold bg-rose-50 border border-rose-300 text-rose-800 block";
+                status.innerHTML = "Ocurrió un error al enviar el mensaje. Por favor escríbenos directamente a atencionalclientejec@gmail.com";
+            });
         });
     </script>
 </body>
